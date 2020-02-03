@@ -1,0 +1,39 @@
+/*
+
+First Draft: parse and use $url/ops/is/$Name/is.php?op=SCRUDOP to do the operations.
+
+function S(<?php echo "$is[TableName]";?>,col1, col2..") { .. } ;
+function C(<?php echo "$is[TableName]";?>,col1, col2..") { .. } ;
+function R(<?php echo "$is[TableName]";?>,col1, col2..") { .. } ;
+function U(<?php echo "$is[TableName]";?>,col1, col2..") { .. } ;
+
+function D(<?php echo "$is[TableName]";?>,col1, col2..") { .. } ;
+
+function doscrud($URL,$DATA) {
+  // this function has data and authority to carry out any SCRUD op on the server's DB
+  // and to return results to an HTTP caller including data record(s), compatible with being
+  // called from client-side JS code across the net. Don't expect it to return a UI,
+  // building that is the client's job.
+
+  $u = explode("&",$URL); 
+  // into $is=table name; $op="op=$op"; // e.g., mysite.com/ops/is/is=$is[TableName]&op=S|C|R|U|D
+  // while DATA is JSON-interpretable data received from client.
+  
+  // get $is (name of table) and $op (S|C|R|U|D) from URL calling server PHP.
+  if ($is==$is[TableName]) {
+    if        ($op=="search") { S($is[TableName],$col1,$col2,); // pass in search criteria
+    } else if ($op=="create") { C($is[TableName],$col1,$col2,); // pass in default or completed values
+    } else if ($op=="read")   { R($is[TableName],$rowid,$col2,); // choose a row by ID
+    } else if ($op=="update") { U($is[TableName],$rowid,$col2,); // pass in changed values
+    } else if ($op=="delete") { D($is[TableName],$rowID);     // delete by row ID
+    } else {
+      return "BAD REQUEST SHOULD BE ONE OF S|C|R|U|D";
+    }
+  }
+  // should be done setting reply headers and results by now.
+  exit;
+}  
+
+// parse the URL that called us and switch and call doscrud().
+
+*/

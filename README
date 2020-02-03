@@ -1,0 +1,235 @@
+		IS is for Information Structure
+
+SUMMARY: 
+
+Here is an easy, simple system for building SCRUD apps on a LAMP
+stack.
+
+Briefly: Here you put an information structure into a kind of deep
+source file, then run 'make APP=Test' to generate all the surface
+source code layers of SQL, PHP, JS and HTTP/JSON/etc. to implment SQL
+SCRUD operations from a web client through client/server JS/PHP+MySQL.
+
+You can use these generated, customized code to interact with your
+database instead of writing your own PHP SQL server and a client-side
+Javascript API to interact with each other to carry out the SCRUD
+operations using your information structure.
+
+
+INTRODUCTION:
+
+SCRUD means: Search, Create, Read, Update, Delete.  These are the
+operations needed for a record based database, that enable not just a
+record of transactions, events, or history, but picking out ones you
+want to look at, editing them, or deleting them.
+
+So it's pretty generally useful.
+
+We build on common infrastructure: a MySQL database available to you,
+and a web server with PHP, and client systems able to handle HTML and
+Javascript. That is, it's pretty universal. I hope to use it for a
+iOS/Android landlord phone-app, for a public dog names database, could
+use it in an IoT dashboard to build and use a transaction history, I
+can't even think of all the things I could use it for.  I bet you have
+several, and the cost in developer time is what's held you back. 
+
+
+STEPS TO FOLLOW:
+
+So here's what you do.
+
+  * Think about your application, give it a nice short punchy name
+    like Dog or App.  Mine is called Test.
+
+  * Make a list of the elements that will need to be in your standard
+    record structure for each event or transaction.
+
+  * Manually make a directory on your web server with your application
+    name with the command line: % mkdir $(APP).
+
+  * Then in ./Makefile change APP=Test replacing Test with your app's
+    name, then run it (% make) to create all the js and php files
+    inside the $(APP)/ directory.
+
+  * In templates/is.php is a sample information structure which you
+    can use to model your own which will be named $(APP)/$(APP).php
+    
+      * Either comment out the part of the Makefile that blows away
+        ./$(APP)/$(APP).php by copying ./templates/is.php there, so
+        you can just have your own there, or change the original
+        is.php to suit your app's information structure, and let it
+        copy it over each time you happen to run make.
+	    
+  * Your derived version of is.php will need some technical details,
+    for each element of the standard record you have in mind for your
+    application.  These include the kind of SQL table column data it
+    will be represented by, what kind of HTML input type it will be
+    shown as in the user interface, a size in case it is a string of
+    some length, a default value, etc.  You should be able to figure
+    it out by the examples, or email me with questions.
+
+  * Then when you run 'make', it automatically uses the PHP's file
+    rewriting capability to use the details in $(APP).php to fill out
+    and customize the templates so that they work with your
+    information structure in the various places they must: Javascript,
+    SQL, an index page to start from and the final PHP IS CRUD (that's
+    a joke, not an insult) server program that will be run on the
+    server machine during a client call.
+
+  * It will also auto-generate the SQL code that will create the
+    database, table, and columns that are needed to support your
+    particular information structure.  Run % $(APP)/$(APP).db without
+    arguments to see what you can do with it. Do this and follow the
+    resulting instructions to set up your database to have the
+    information structure in a table in it.  Create user, then DB,
+    then table; also, later on you may need to backup and/or restore
+    your DB, and if your app evolves you may need to modify the table
+    too; all these are explained so a person can do these things even
+    though they may not know how to run MySQL through a CPanel UI or
+    carry out all these steps in technical detail, as long as they
+    aren't afraid to learn and willing to follow instructions. I
+    consider myself the target audience; if it works for me it
+    likely will work for you too.
+
+  * There are some simpler test runs implemented in the makefile under
+    make targets tc, tr, tu, td (Test * CRUD) on the same machine,
+    using CURL.  I use them for a certain level of debugging.
+
+  * I also debugged using the Chrome Developer Tools accessed in
+    Chrome under the three vertical dots in the menu bar -> More Tools
+    -> Developer Tools.   Very useful.
+
+
+FILES:
+
+Look at templates/*:
+  is.php       a sample Information Structure, which governs the rest.
+  isdb.php     generates MySQL instructions and code for setup,
+  	       maintenance, and all the SCRUD ops.
+  isphp.php    generates PHP server-side request-handlers for the IS SCRUD ops.
+  isjs.php     generates a JS library with client-side functions that
+  	       connect to the server to do IS SCRUD ops, and with UI
+  	       modification functions that insert IS functionality
+  	       onto a set of HTML divs.
+  isindex.php: generates a sample index.php file to offer SCRUD on the
+  	       given information structure.
+
+
+FUTURE STEPS:
+
+  x connect UI functions to server API calls.
+  x Create/Delete the DB and Table as admin
+  * Delete/re-Create the DB and Table as admin  
+  x Run some Create + Updates to put stuff in the DB.
+  * Run a backup, delete the whole DB, and restore cycle.
+  * Do a derived app for Dog Names.
+  * Another app: comments on ontheground.php
+  * Another app: IOT monitoring dashboard from any device like a thermostat.
+  * Another app: a social website.
+  * Another app: PlayAlong
+  * Think up more apps.
+
+
+FURTHER DISCUSSION:
+
+Let there be a certain information structure IS and its octopus arms through
+   a web app's parts and its lifecycle through time.
+   For web apps, it has to exist as octopus, i.e., be able to:
+       exist in parallel in multiple computers and contexts: server DB & PHP; client JS & UI.
+       circulate from one context to the other
+     So we need a standard way to map representations from IS to each context,
+       and software methods and execution to move them from source to recipient contexts
+   Also it needs a healthy life cycle: a new structure element type
+      needs to be made to exist in all the contexts: add an
+      arm, modify an arm, remove an arm.
+   DB backup is another part of the lifecycle.
+
+Let an IS be a PHP associative array structure defining what's needed
+to be known in the different places. (e.g., <?php $is=[a=>b,c=>d...];?>)
+Key/value pairs in $is store the names of DB, Table, the columns in
+the Table, user names, the URL and path to the app server programs, etc.
+
+In IS how does client connect with server? For each CRUD operation
+client-side JavaScript attaches widgets and an onsubmit function to a
+FORM (isjs.php look for uTop). isindex.php provides minimal structures
+to attach to.  isdb.php generates the database code. isphp.php
+generates the server-side CRUD API handler.  
+
+Then let a Makefile apply PHP itself to compile through, reading the
+IS structure and mapping these template files written to be processed
+with PHP so as to generate (=>) the following files (replace "APP"
+with your app's name):
+
+  templates/is.php => APP/APP.php The idea is to color in all the
+      templates below with the information structure in (your derived
+      version of) is.php, as follows:
+
+  templates/isindex.php => APP/index.php: a client page with the
+      beginnings of the CRUD UI.  This just creates a place to hang
+      stuff, and the Javascript does almost all of the HTML work.
+
+  template/isdb.php => APP/isAPP.db: provides instructions on how to
+      create and maintain a changing database, both to CREATE anew and
+      to MODIFY table for changes.  Also shows what SQL looks like,
+      to do CRUD ops on the IS records on the server, so you know how
+      to do them.
+
+  template/isphp.php => APP/isAPP.php: PHP server-side API
+      implementation, provides an (authenticated?) server API to those
+      SQL CRUD operations on server's DB returning CRUD results to
+      client.  It's middleware, between the client and the DB.
+      
+  templates/isjs.php => APP/isAPP.js: A JS library/function file that
+      implements CRUD-related UI displays and a CRUD API to be called
+      within the client and that makes the related server calls to the
+      PHP API.  Enough UI is built to let user initiate a New,
+      Search/Read, EDIT, and Delete and to use the JS API to make them
+      happen through server requests and return data handlers.
+
+
+RELATED WORK:
+
+  Incidentally there's a thing out there called PHP-CRUD-API, but I'm
+  not that smart and found it to be intimidatingly, and
+  incomprehensibly complex and enormous, and I thought I'd spend more
+  time figuring it out than writing my own, so here you go.  I did
+  steal the idea from PHP-CRUD-API of using HTTP request methods
+  (POST, GET, PUT, DELETE) as both synonyms for CRUD operations and as
+  the means of communicating through HTTP which of the operations is
+  being requested.  So it's not all POSTs with a JSON structure
+  holding the operation in it.  Some of it is REST-ish like a GET with
+  a URL suffixed with ?id=NNN to READ that number-identified record.
+  Other operations do send JSON back and forth.
+
+  Concisely, then, you might think of IS as a PHP implementation of a
+  REST-ish API where the requested URL identifies the IS API itself
+  (URL/PATH/APP/isAPP.php) and the request method specifies which of
+  the CRUD ops is being requested, plus JSON where needed to transfer
+  the CRUD data, if not simply appended to the URL.  Then client side
+  JavaScript to build a minimum UI.
+
+
+   That's the idea here.  January 12, 2020 work started. January 23
+   there was some php self-rewriting templates for some of these
+   parts, but nothing compiled, ran, or worked.  Just some ideas in
+   perhaps the right direction.  February 2 it's now a tiny step past
+   there, but I have used it to do all the CRUD operations through the
+   UI and seen that they pop through into the database.  I can barely
+   keep a straight face, declaring it to be an implementation of its
+   specs, but it actually minimally kind of is, so that says it's time
+   to include other people.  It'll move faster with many eyes on it.
+
+   Therefore following the principle of release early, release often,
+   I hereby open the Kimono and offer IS to you for use under my
+   favorite license, the GPL.  Please try it, use it, find its
+   limitations and help fix them, and please send any changes you make
+   so that I can incorporate them into an improved version and release
+   them to the world.
+
+   Thank you!
+
+   Tom
+
+   Thomas C Veatch PhD
+   tcveatch@gmail.com
+   1-206-858-2633
