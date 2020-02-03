@@ -27,11 +27,13 @@ So it's pretty generally useful.
 
 We build on common infrastructure: a MySQL database available to you,
 and a web server with PHP, and client systems able to handle HTML and
-Javascript. That is, it's pretty universal. I hope to use it for a
-iOS/Android landlord phone-app, for a public dog names database, could
-use it in an IoT dashboard to build and use a transaction history, I
-can't even think of all the things I could use it for.  I bet you have
-several, and the cost in developer time is what's held you back. 
+Javascript. Of course you need make and probably you'll be on some
+unixish system.  That is, it's pretty universal. I hope to use it for
+a iOS/Android landlord phone-app, for a public dog names database,
+could use it in an IoT dashboard to build and use a transaction
+history, I can't even think of all the things I could use it for.  I
+bet you have several, and the cost in developer time is what's held
+you back.
 
 
 STEPS TO FOLLOW:
