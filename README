@@ -5,35 +5,42 @@ SUMMARY:
 Here is an easy, simple system for building SCRUD apps on a LAMP
 stack.
 
-Briefly: Here you put an information structure into a kind of deep
-source file, then run 'make APP=Test' to generate all the surface
-source code layers of SQL, PHP, JS and HTTP/JSON/etc. to implment SQL
-SCRUD operations from a web client through client/server JS/PHP+MySQL.
+Briefly: In this system you put an information structure into a kind
+of deep source file, then run 'make APP=Test' to generate all the
+surface source code layers of SQL, PHP, JS and HTTP/JSON/etc. to
+implement SQL SCRUD operations from the perspective of a web client
+through client/server JS/PHP+MySQL.
 
-You can use these generated, customized code to interact with your
-database instead of writing your own PHP SQL server and a client-side
-Javascript API to interact with each other to carry out the SCRUD
-operations using your information structure.
+You can use the generated, customized code bits to set up, maintain,
+and interact with your database instead of writing your own PHP SQL
+server and a client-side Javascript API to interact with each other to
+carry out the SCRUD operations using your information structure.
 
 
 INTRODUCTION:
 
 SCRUD means: Search, Create, Read, Update, Delete.  These are the
-operations needed for a record based database, that enable not just a
-record of transactions, events, or history, but picking out ones you
-want to look at, editing them, or deleting them.
+operations needed for a records based database.  They enable making a
+record of transactions, events, or history, as well as picking out
+ones you want to look at, editing them, or deleting them.  
 
 So it's pretty generally useful.
 
-We build on common infrastructure: a MySQL database available to you,
-and a web server with PHP, and client systems able to handle HTML and
-Javascript. Of course you need make and probably you'll be on some
-unixish system.  That is, it's pretty universal. I hope to use it for
-a iOS/Android landlord phone-app, for a public dog names database,
-could use it in an IoT dashboard to build and use a transaction
-history, I can't even think of all the things I could use it for.  I
-bet you have several, and the cost in developer time is what's held
-you back.
+It is built on common infrastructure: a MySQL database available to
+you on your server; a web server with PHP; and client systems able to
+handle HTML and Javascript. You'll need 'make' and probably you'll be
+on some unixish system.  That is, it's pretty universal. I hope to use
+IS for an iOS/Android landlord phone-app, for a public dog names
+database; one could use it in an IoT dashboard to build and use a
+transaction history, I can't even think of all the things I could use
+it for.  I bet you have several, and the cost in developer time is
+what's held you back.  True in my case.  Below are Steps to Follow to
+use this, as well as a breakdown of the files in this system, some
+placeholders for future work, and further discussion about the design
+and history.
+
+Feel free to contact the author, Thomas C Veatch at his email,
+first initial, middle initial, last name at g mail dot come.
 
 
 STEPS TO FOLLOW:
