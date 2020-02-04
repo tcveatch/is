@@ -8,8 +8,8 @@ stack.
 Briefly: In this system you put an information structure into a kind
 of deep source file, then run 'make APP=Test' to generate all the
 surface source code layers of SQL, PHP, JS and HTTP/JSON/etc. to
-implement SQL SCRUD operations from the perspective of a web client
-through client/server JS/PHP+MySQL.
+implement a SCRUD server API and through it a set of SCRUD SQL
+operations all from the perspective of a web client.
 
 You can use the generated, customized code bits to set up, maintain,
 and interact with your database instead of writing your own PHP SQL
@@ -82,8 +82,8 @@ So here's what you do.
     and customize the templates so that they work with your
     information structure in the various places they must: Javascript,
     SQL, an index page to start from and the final PHP IS CRUD (that's
-    a joke, not an insult) server program that will be run on the
-    server machine during a client call.
+    a pun and joke, not an insult) server program that will be run on
+    the server machine during a client call.
 
   * It will also auto-generate the SQL code that will create the
     database, table, and columns that are needed to support your

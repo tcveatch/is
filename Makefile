@@ -4,9 +4,15 @@ AUTOGENS = $(APP)/is$(APP).db $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/inde
 all: $(APP)
 
 gitup:
-	# Do this:
-	# git commit -m "what changes have been made"
-	# git add <list modified files here>
+	# To bring a repository here I did this:
+	# cd ..; mkdir is; cd is;
+	# git init 
+	# git add .
+	# git remote add origin https://github.com/tcveatch/is
+	# To send changes to the global repository at github:
+	# git status  # to see what has changed
+	# git add <list modified files here> # this is called "staging"
+	# git commit -m "Description of changes"
 	# git push origin master
 
 clean:
