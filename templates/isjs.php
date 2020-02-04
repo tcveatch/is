@@ -9,7 +9,8 @@
 
    To use it:
    % php isjs.php $NAME > is$NAME.js
-   or from a browser:
+
+or from a browser:
    http:path.to.here/isjs.php$NAME=yourtablename > is$NAME.js
  */
 
@@ -290,7 +291,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 		 // is_update() { actually update the row to the server, with onload() { s=SAVEDROW; go; } }
     	    	 // Okay?  So: do a PUT/UPDATE with the id and modified row contents
 		 is_<?php echo $is['TableName']; ?>_update( // call the actual update function.
-		   onload=function() { XXX this SHOULD be like the read() onload to update the form but...???
+		   onload=function() { // XXX this SHOULD be like the read() onload to update the form but...???
    		     alert("compare with the modified row contents and alert if error then return");
 		     activeUpdateSubmit(false);
 		     uState  = updateState.SAVEDROW;

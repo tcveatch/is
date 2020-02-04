@@ -6,6 +6,7 @@ all: $(APP)
 gitup:
 	# Do this:
 	# git commit -m "what changes have been made"
+	# git add <list modified files here>
 	# git push origin master
 
 clean:

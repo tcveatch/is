@@ -31,7 +31,7 @@
 <P><div id="isDeleteDiv">D</div></P>
 <HR>
 
-<script src="./isTest.js"></script>
+<script src="./is<?php echo "$is[Name]";?>.js"></script>
 <script>
 	// Hang the isui divs inside the given divs.
 	addSearch();
