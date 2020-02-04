@@ -12,7 +12,6 @@
   $is =  [
           "Name" => "Test",
           "URL" =>  "http://tomveatch.com",
-	  // tv is the admin user with password Flumpleloverac for db tv with all privileges
           "User" => "public_user", // crud ops only on this table within the 'tv' database.
           "Pwd" =>  "Mousbusication", 
           "Path" => "ops/is",

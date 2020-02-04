@@ -25,11 +25,17 @@
   }
 
   // might need a JSON record to be inserted.  { fea = val; ... }
-  $rec = json_decode('{"Insert":{"fea1":"val1";"fea2":"val2";"fea3":"val3"}}',true);
-  if ($debug) echo "rec=" . var_dump($rec);
+  $insertData = '{"fea1":"val1","fea2":"val2","fea3":"val3"}';
+  if ($debug)
+    echo "insertData=$insertData\n";
+  $rec = json_decode($insertData,true);
+  if ($debug)
+    echo "rec=";
+  if ($debug)
+    var_dump($rec);
   $features = join(",",array_keys($rec));
   $values = join(",",array_values($rec));
-  $whereclause = "($features) VALUES ($values)";
+  // $whereclause = "($features) VALUES ($values)";
 
 ?>
 #/bin/bash
@@ -78,7 +84,7 @@ elif [ $1 == "create_table" ]; then
   # Context of use: Once only, by the app developer, perhaps again to rebuild.
   echo "<?php
          $table_create_command = "CREATE TABLE IF NOT EXISTS " . $is['TableName'] . " ( \n\t";
-	 foreach( $is[Columns] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
+	 foreach( $is['Columns'] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
 	   if ( $id != "1" ) {
 	     $table_create_command .= ", \n\t";
 	   }
@@ -104,17 +110,17 @@ elif [ $1 == "create" ]; then
   echo "<?php echo $pfx; ?> INSERT INTO TABLE $is[DBName].$is[TableName]$rec[Insert];";
 elif [ $1 == "read" ]; then
   # Context of use: by the app itself when used by a client
-  # expecting $features to be "*" or a joined subset of column names.
-  # expecting $rec[Select] to look like "WHERE id=23" or some other search criteria
-  echo "<?php echo "$pfx SELECT " . ($features?$features:"*") . " FROM $is[DBName].$is[TableName]$rec[Select];"; ?>";
+  # expecting features to be "*" or a joined subset of column names.
+  # expecting SelectString to look like "WHERE id=23" or some other search criteria
+  echo "<?php echo "$pfx SELECT " . ($features?$features:"*") . " FROM $is[DBName].$is[TableName] SelectString;"; ?>";
 elif [ $1 == "update" ]; then
-  # Context of use: by the app itself when used by a client
-  # expecting $rec[Update] looks like "SET col1 = val1, col2 = val2, ... WHERE [condition]"
-  echo "<?php echo "$pfx UPDATE TABLE $is[DBName].$is[TableName]$rec[Update];"; ?>";
+  echo Context of use: by the app itself when used by a client
+  echo expecting UpdateString looks like "SET col1 = val1, col2 = val2, ... WHERE [condition]"
+  echo "<?php echo "$pfx UPDATE TABLE $is[DBName].$is[TableName] UpdateString;"; ?>";
 elif [ $1 == "delete" ]; then
   # Context of use: by the app itself when used by a client
-  # expecting $rec[Delete] looks like "WHERE `id` = 32"
-  echo "<?php echo "$pfx DELETE FROM TABLE $is[DBName].$is[TableName] $rec[Delete];"; ?>";
+  # expecting DeleteString looks like "WHERE `id` = 32"
+  echo "<?php echo "$pfx DELETE FROM TABLE $is[DBName].$is[TableName] DeleteString;"; ?>";
 else
   echo "Argument $1 not recognized. Please try again."
 fi

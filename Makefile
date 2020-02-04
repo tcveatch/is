@@ -1,5 +1,16 @@
 APP=Test
+AUTOGENS = $(APP)/is$(APP).db $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/index.php
+
 all: $(APP)
+
+gitup:
+	# Do this:
+	# git commit -m "what changes have been made"
+	# git push origin master
+
+clean:
+	rm -f error_log $(APP)/error_log templates/error_log /tmp/isphp.headers /tmp/isphp.err
+	rm $(AUTOGENS)
 
 tc: $(APP)
 	rm -f error_log $(APP)/error_log templates/error_log /tmp/isphp.headers /tmp/isphp.err
@@ -29,7 +40,7 @@ td: $(APP)
 	touch error_log $(APP)/error_log templates/error_log /tmp/isphp.err
 	cat   error_log $(APP)/error_log templates/error_log /tmp/isphp.err
 
-skip:
+FYI:
 	$(APP)/is$(APP).db create_table
 	$(APP)/is$(APP).db modify_table
 	$(APP)/is$(APP).db backup_table 
