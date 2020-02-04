@@ -15,8 +15,8 @@
           "User" => "public_user", // crud ops only on this table within the 'tv' database.
           "Pwd" =>  "Mousbusication", 
           "Path" => "ops/is",
-	  "BackupDir"=>"~/.mysqlbackup/", // backup directory
-	  "BackupDate" =>"20200115",      // specify B/backup.(BDate).sql to restore from
+	  "BackupDir"=>"~/.mysql_backup/", // backup directory
+	  "BackupDate" =>"20200203",      // specify B/backup.(BDate).sql to restore from
 	  "DBName" => "tv",
 	  "TableName" =>  "Test",
 	  "Columns" =>  [ // [ col#, colName,    type,  N, def, InputType, SQL Type   ]

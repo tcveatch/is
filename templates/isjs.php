@@ -191,8 +191,8 @@ const updateState = { // Meaning, if in this state:
   UNSAVEDROW: 5
 }
 let uState = updateState.UNITIALIZED; // global
-let uTop = "IS Update Widget <FORM id='isUpdateForm' name='isUpdateForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_updateUI()\">";
-let uBot = "</FORM></P>";
+let uTop = "<B>Update</B> <FORM id='isUpdateForm' name='isUpdateForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_updateUI()\">";
+let uBot = "</FORM>";
 
 function activeUpdateSubmit(yorn) {
   let s = document.getElementById("isUpdateSubmit");
@@ -238,7 +238,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 		 // show ID widget and label button as Access Item To Edit.
 		 // START       an "Edit By Row ID" button, with action is..update(CHOOSEROW)
      		 div.innerHTML = uTop
-		  +  "<B>Enter a row ID from DB <?php echo $is['DBName'];?>, Table <?php echo $is['TableName']; ?>:</B><BR>"
+		  +  "Enter a row ID from DB <?php echo $is['DBName'];?>, Table <?php echo $is['TableName']; ?> to modify:</B><BR>"
 		  +  "<BR>ID: <input type=number id=updateID name=updateID>"
 		  +  "<input type=\"submit\" value=\"Access item to edit\">"
 		  +  uBot;
@@ -371,7 +371,7 @@ function is_<?php echo $is['TableName'];?>_delete() {
 function addSearch() {
   div = document.getElementById("isSearchDiv");
   div.innerHTML 
-    += " UI before operation is initiated: criteria-specifying widgetry. "
+    += " Spec: UI before operation is initiated: criteria-specifying widgetry. "
     +  "Values are gleaned here when activated by software due to who knows "
     +  "what, so it knows how to search.  Action search(criteria) brings an "
     +  "array of matching records from the server to here show them "
@@ -385,15 +385,11 @@ function addSearch() {
 }
 
 function addCreate() {
-  divpp = document.getElementById("isCreateDiv");
+  div = document.getElementById("isCreateDiv");
   div.innerHTML 
-    += " UI before operation is initiated: A form with \"Create New\" submit element and "
-    +  "onsubmit=is_<?php echo $is['TableName']; ?>_create(this). So click Create New and get a new record created on " 
-    +  "the server and here show the new record, displayed UI after " 
-    +  "operation completes: nothing but a result variable\'s value " 
-    +  "indicates success or not."
+    += "Fill out this form and click Create New to post a new record to " 
+    +  "the server.  Result appears in a pop up.  You can then do it again.<BR> "
     +  "<FORM id='createForm' name='createForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_create()\">"
-    +  "<B><?php echo $is['TableName']; ?>:</B><BR>"
     +  "<?php 
 	 foreach( $is['Columns'] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
 	   if ($id != 'id') {
@@ -401,8 +397,8 @@ function addCreate() {
            }
          } 
        ?>"
-    +  "<input type=\"submit\" value=\"CreateNew\">"
-    +  "</FORM></P>";
+    +  "<input type=\"submit\" value=\"Create New <?php echo $is['TableName']; ?>\">"
+    +  "</FORM>\n";
   // div.onclick=is_<?php echo $is['TableName']; ?>_create();
   // A form has action, onsubmit, and inputs with type, value, and onclick.
   //    action is supposed to be a URL to go to with the form wrapped up in method=(GET|POST)
@@ -428,13 +424,9 @@ function addCreate() {
 function addRead() {
   div = document.getElementById("isReadDiv");
   div.innerHTML
-    += " UI before operation is initiated: nothing.  It\'s activated by "
-    +  "software due to who knows what, but it must know the record ID. "
-    +  "Action read(id) brings that record from the server to here show the "
-    +  "record displayed UI after operation completes: show the record "
-    +  "displayed or error if ID doesn\'t exist or something failed in "
-    +  "transit."
-
+    += " Enter a row ID and click to read/display the specified row "
+    +  "from the server, or an error if ID doesn\'t exist or something failed in "
+    +  "transit. "
     +  "<FORM id='readForm' name='readForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_read()\">"
     +  "<B>Enter a row ID from table <?php echo $is['TableName']; ?>:</B><BR>"
     +  "<?php echo "<BR>ID: <input type=number name=id>"; ?>"
@@ -453,11 +445,9 @@ function addUpdate() { // Init updateState state machine and call .._updateUI()
 function addDelete() {
   div = document.getElementById("isDeleteDiv");
   div.innerHTML
-    += " UI before operation is initiated: A button associated with that ID "
-    +  "saying \"Delete\" with onclick=isdelete() Action click Delete and get "
-    +  "that record deleted on the server and here show result.  UI after "
-    +  "operation completes: nothing but a result variable\'s value "
-    +  "indicates success or not. "
+    += "Enter a row id for a record to be deleted, then click Delete. This "
+    +  "requests the server to delete that record and here show the result.  A popup will "
+    +  "say when the operation completes (loaded 200, result 1.) "
     +  "<FORM id='deleteForm' name='deleteForm' onsubmit=\"is_<?php echo $is['TableName'];?>_delete()\" >"
     +  "<input type=\"id\" name='id' value=\"50\">"
     +  "<input type=\"submit\" value=\"Delete\">"

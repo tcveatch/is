@@ -55,7 +55,9 @@ FYI:
 $(APP): $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/is$(APP).db $(APP)/index.php
 
 $(APP)/$(APP).php: templates/is.php
-	cp templates/is.php $(APP)/$(APP).php
+	# Only do this step manually, and once, before editing for your own application
+	# cp templates/is.php $(APP)/$(APP).php
+	# Maybe save a copy as $(APP)/$(APP).php.safe after editing it.
 
 $(APP)/index.php: templates/isindex.php $(APP)/$(APP).php
 	php templates/isindex.php $(APP) > $(APP)/index.php
