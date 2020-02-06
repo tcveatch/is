@@ -40,6 +40,7 @@ echo "/* start JS library file based on $NAME.php */\n";
 //
 function is_<?php echo $is['TableName']; ?>_search() {
   alert("called is_<?php echo $is['TableName']; ?>_search()");
+  return false;
 }
 
 //
@@ -62,15 +63,29 @@ function is_<?php echo $is['TableName'];?>_create() {
   // From here, call the server API with the JSON string.
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
   const xhr = new XMLHttpRequest();
-  xhr.onload = function () { alert(`loaded: ${xhr.status} ${xhr.response}`); };
+  xhr.onload = function () {
+    loc = window.location;
+    alert(`is_<?php echo $is['TableName'];?>_create().onload: ${xhr.status} ${xhr.response} at ${loc}`); // says Loaded, 1. Doesn't echo stored values.
+/*    form = getElementById("createForm");
+    for each element in xhr.response
+    	list = getElementsByName(element's name)
+	formElement = 
+	for each member of the list
+	  isSameElement(member,form) // recursively check if its parent == form, if so return true else
+	  if === document return false;
+	  else return isSameElement(member.parent,form)
+    	set formElement.value = xhr.response.element.value;
+ */
+  };
   xhr.open("POST",url,true); // POST adds a new row to the table
   msg = "in is_<?php echo $is['TableName']; ?>_create(), form data|JSON=" + pkg + ", url=" + url;
   console.log(msg);
-  xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
-  // xhr.setRequestHeader("Access-Control-Allow-Origin",url);
-  // xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
+  xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
+  xhr.setRequestHeader("Access-Control-Allow-Origin","<?php echo "$is[URL]/$is[Path]/$is[Name]/"; ?>");
+  xhr.setRequestHeader("Access-Control-Allow-Methods","POST,PUT");
   xhr.send(pkg);
   alert("xhr.send(" + pkg + ") sent.");
+  return false; // Supposedly, if we don't return false, the page will reload, overwriting modified widgets with default values.
 }
 
 //
@@ -146,6 +161,7 @@ function is_<?php echo $is['TableName'];?>_read(
   // xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
   xhr.send("");
   alert("xhr.send([Empty body]) sent to " + url);
+  return false; // we don't need a whole page reload after all this work.
 }
 
 //
@@ -167,7 +183,7 @@ function is_<?php echo $is['TableName'];?>_update(jsonUpdateStr) {
   let k = {};
   for (const [key,value] of e.entries()) { k[key] = value } // uses name attribute which is the bare $colName
   pkg = JSON.stringify(k);
-  // From here, call the server API with the JSON string.
+  // From here, call the server API with the JSON string as body.
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
   const xhr = new XMLHttpRequest();
   xhr.onload = function () { alert(`loaded: ${xhr.status} ${xhr.response}`); };
@@ -175,8 +191,8 @@ function is_<?php echo $is['TableName'];?>_update(jsonUpdateStr) {
   msg = "in is_<?php echo $is['TableName']; ?>_update(), form data|JSON=" + pkg + ", url=" + url;
   console.log(msg);
   xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
-  // xhr.setRequestHeader("Access-Control-Allow-Origin",url);
-  // xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
+  xhr.setRequestHeader("Access-Control-Allow-Origin","<?php echo "$is[URL]/$is[Path]/$is[Name]/"; ?>");
+  xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
   xhr.send(pkg);
   alert("xhr.send(" + pkg + ") sent.");
 }
@@ -191,7 +207,7 @@ const updateState = { // Meaning, if in this state:
   UNSAVEDROW: 5
 }
 let uState = updateState.UNITIALIZED; // global
-let uTop = "<B>Update</B> <FORM id='isUpdateForm' name='isUpdateForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_updateUI()\">";
+let uTop = "<B>Update</B> <FORM id='isUpdateForm' name='isUpdateForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_updateUI()\">";
 let uBot = "</FORM>";
 
 function activeUpdateSubmit(yorn) {
@@ -204,7 +220,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
   div = document.getElementById("isUpdateDiv");
   if        (    uState == updateState.UNITIALIZED) { // on page load (should never occur)
     alert("Wierd: in is_<?php echo $is['TableName']; ?>_updateUI(), with state=UNINITIALIZED");
-    exit();
+    return false;
   }
 
   if        (    uState == updateState.INIT) {
@@ -281,10 +297,6 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 		 activeUpdateSubmit(true);
 		 uState = updateState.UNSAVEDROW; // be ready to save it.
 
-// XXX there's some kind of a bug here where it calls an ACTION with the whole ?a=b&... suffix.
-// XXX and ends up back at ground zero state START.
-// XXX it would be nice to know the METHOD used for each of these calls in their alert()'s.
-
   } else if (    uState == updateState.UNSAVEDROW) { // got set to UNSAVED elsewhere upon edit.
     	    	 alert("9 in is_<?php echo $is['TableName']; ?>_updateUI(), state=UNSAVEDROW");  
     	    	 // UNSAVEDROW  show row w/changes, live SAVE button, with
@@ -301,6 +313,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
   } else    {
     alert("10 in _updateUI, updateState has an unknown value: " + uState);
   }
+  return false; 
 }
 
 //
@@ -330,6 +343,7 @@ function is_<?php echo $is['TableName'];?>_delete() {
   xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
   xhr.send(pkg);
   alert("xhr.send(" + pkg + ") sent.");
+  return false; // false here prevents form submission after onload i.e. full page reload.
 }
 
 <?php
@@ -378,7 +392,7 @@ function addSearch() {
     +  "displayed UI after operation completes: put them in a datatable, "
     +  "also showing the count of matches, or show error if ID doesn't "
     +  "exist or something failed in transit. "
-    +  "<FORM id='searchForm' name='searchForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_search()\">"
+    +  "<FORM id='searchForm' name='searchForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_search()\">"
     +  "<input type=\"submit\" value=\"Search\">"
     +  "</FORM>";
   // div.onclick=is_<?php echo $is['TableName']; ?>_search();
@@ -389,12 +403,10 @@ function addCreate() {
   div.innerHTML 
     += "Fill out this form and click Create New to post a new record to " 
     +  "the server.  Result appears in a pop up.  You can then do it again.<BR> "
-    +  "<FORM id='createForm' name='createForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_create()\">"
+    +  "<FORM id='createForm' name='createForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_create()\">"
     +  "<?php 
 	 foreach( $is['Columns'] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
-	   if ($id != 'id') {
-             echo "<BR>{$colName}: <input type=$InputType name={$colName} value={$def}>";
-           }
+	   echo ($InputType == 'hidden'?"":"<BR>ok: {$colName}") . " <input type=$InputType name={$colName} value={$def}>";
          } 
        ?>"
     +  "<input type=\"submit\" value=\"Create New <?php echo $is['TableName']; ?>\">"
@@ -427,7 +439,7 @@ function addRead() {
     += " Enter a row ID and click to read/display the specified row "
     +  "from the server, or an error if ID doesn\'t exist or something failed in "
     +  "transit. "
-    +  "<FORM id='readForm' name='readForm' onsubmit=\"is_<?php echo "$is[TableName]";?>_read()\">"
+    +  "<FORM id='readForm' name='readForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_read()\">"
     +  "<B>Enter a row ID from table <?php echo $is['TableName']; ?>:</B><BR>"
     +  "<?php echo "<BR>ID: <input type=number name=id>"; ?>"
     +  "<input type=\"submit\" value=\"GET/Read/Display Specified Row\">"
@@ -448,7 +460,7 @@ function addDelete() {
     += "Enter a row id for a record to be deleted, then click Delete. This "
     +  "requests the server to delete that record and here show the result.  A popup will "
     +  "say when the operation completes (loaded 200, result 1.) "
-    +  "<FORM id='deleteForm' name='deleteForm' onsubmit=\"is_<?php echo $is['TableName'];?>_delete()\" >"
+    +  "<FORM id='deleteForm' name='deleteForm' onsubmit=\"return is_<?php echo $is['TableName'];?>_delete()\" >"
     +  "<input type=\"id\" name='id' value=\"50\">"
     +  "<input type=\"submit\" value=\"Delete\">"
     +  "</FORM>";

@@ -59,13 +59,29 @@
    x   Let's do Search later and just do Read for now, and let's assume Read requires a row id only.
    x   So the initial UI is a numeric field to put in your own row id,
    x   and the result is displayed in some default display format for a record based on is.php:Columns.
-   UI for Update should, as for Create, let you put in info to go into the fields.
-       Update should first be select row by ID to edit, then a Read it by ID, then a
-       display of everything editably, then an Update button then a display with a Saved dressing on the button,
-       then if more editing occurs, rename the button Update/Save again and let it continue.
+   x UI for Update should, as for Create, let you put in info to go into the fields.
+   x   Update should first be select row by ID to edit, then a Read it by ID, then a
+   x   display of everything editably, then an Update button then a display with a Saved dressing on the button,
+   x    then if more editing occurs, rename the button Update/Save again and let it continue.
    x UI for Delete should either show all the existing rows to pick one or more to delete,
    x    or it should let you put in a number.
    x Return results for delete should include SUCCESS, FAILURE, and Row Didn't Exist In The First Place.
+   x accessing isCorona.php with json data correct fails and somehow pulls index.php?bla=bla?encoded=as+url
+   x  which then fails with headers not set properly, apparently.
+   x  becausee isCorona.php is an empty file!
+   x  // the onsubmit function should end with "return false;" to prevent additional submit handling.
+   Open Bugs & Goals:
+   Transition from Create to Update (Save[Inactive]) displaying the created record.
+   Transition from Read to Update, displaying the read record.
+   Record display occurs
+   	  after Read
+	  during Update process after read and during Save[active] and Save[inactive]
+	  during Create
+	  before Delete
+   Widgetry should be independent of row data copying.
+     Provide a hook in the widgetry to hang the 
+     Let onload call a copy function with a widget selector parameter.
+       then for each column put the received data into the selected widget by colomn
    */
   $debug=1;
   if (defined('STDIN')) { $NAME=$argv[1];      /* Run this script on the command line and give the app name as an argument. */ }
@@ -90,7 +106,7 @@
 /*
  * Phase 1: get ready.
  */
-$debug    = 0;
+$debug    = 1;
 $method   = (isset($_SERVER["REQUEST_METHOD"]) ? $_SERVER["REQUEST_METHOD"] : "NONE");
 error_log ( "method=$method\n",3,"/tmp/isphp.err");
 $h = getallheaders();
@@ -103,9 +119,9 @@ if ($debug) error_log ( "XXX headers: $s XXX\n",3,"/tmp/isphp.err");
 if ($method=="OPTIONS") {
   http_response_code(200); // 200 OK, or 204 No Content.
   header("Accept: GET,PUT,POST,DELETE,OPTIONS");
-  header("Access-Control-Allow-Origin: *");
+  header("Access-Control-Allow-Origin: http://www.tomveatch.com");
   header("Access-Control-Allow-Methods: GET,PUT,POST,DELETE,OPTIONS");
-  header("Access-Control-Allow-Headers: Content-Type, Accept, Origin");
+  header("Access-Control-Allow-Headers: access-control-allow-methods, access-control-allow-origin, Content-Type, Accept, Origin,");
   exit(0);
 }
 
@@ -253,7 +269,7 @@ $rs = print_r($result,TRUE);
 error_log("mysqli_query() returned \"{$rs}\" on sql: $sql\n",3,"/tmp/isphp.err");
 
 // print some results like the id of the inserted/deleted row, the updated row id, the row itself
-if ($method == 'GET') {  // SELECT
+if ($method == 'GET') {  // aka SELECT aka READ or SEARCH
   $res = "";
   if (!$rowid) $res .= '['; // if no rowid is set, this may be for multiple rows, so start an array of JSON objects
   $N = mysqli_num_rows($result);
@@ -267,7 +283,7 @@ if ($method == 'GET') {  // SELECT
   http_response_code(200); // OK
 }
 
-elseif ($method=="POST") {
+elseif ($method=="POST") { // aka INSERT aka CREATE
   $res = "{";
   // handle reported stats for a POST/INSERT
   // for multi-line POST/INSERTs we can find out a bit about how it went with mysqli_info(). 
@@ -304,11 +320,12 @@ elseif ($method=="POST") {
   // result should be TRUE for success, otherwise we died before we got here. Just being helpful.
   error_log("id of " . ($method=="POST"?"inser":"upda") . "ted row is: $miid\n",3,"/tmp/isphp.err");
   header("Access-Control-Allow-Origin: *");
+  header("Access-Control-Allow-Methods: *");
   header("Content-Type: application/json; charset=utf-8");
   $res .= "\"id\":\"$miid\",\"rows_affected\":\"$mar\",\"result\":\"$result\"}\n"; // get ready to report home
 }
 
-elseif ($method == 'PUT') {
+elseif ($method == 'PUT') { // aka UPDATE
   $res = "{";
   // handle reported stats for a PUT/UPDATE
   // for multi-line PUT/UPDATEs we can find out a bit about how it went with mysqli_info().
@@ -343,7 +360,7 @@ elseif ($method == 'PUT') {
   http_response_code(200);
 }
 
-elseif ($method == 'DELETE') {
+elseif ($method == 'DELETE') { 
   header("Access-Control-Allow-Origin: *");
   header("Content-Type: application/json; charset=utf-8");
   http_response_code(200);

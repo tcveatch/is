@@ -1,4 +1,3 @@
-APP=Test
 AUTOGENS = $(APP)/is$(APP).db $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/index.php
 
 all: $(APP)
