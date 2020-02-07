@@ -38,9 +38,24 @@ echo "/* start JS library file based on $NAME.php */\n";
 //
 // provide criteria to server REST PHP API, retrieve array of records
 //
+
 function is_<?php echo $is['TableName']; ?>_search() {
   alert("called is_<?php echo $is['TableName']; ?>_search()");
-  return false;
+  /* 
+    if (JS_preg_match(id,"*")) get all.
+    Should read the search criteria from a form, including:
+      a|b within an input element,
+      a&b between input elements,
+      * in id for all,
+      regex in an input element for that subset.
+    	[a, b], [a,b] for ranges
+   */
+  url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
+  pkg = '{"search":"id>0"}'
+  myonload = function () {
+    alert("set by is_<?php echo $is['TableName']; ?>_search(), called after xhr.send in isSearch()");
+  }    	    
+  return isSearch(url,pkg,onload);
 }
 
 //
@@ -49,8 +64,7 @@ function is_<?php echo $is['TableName']; ?>_search() {
 // create a record with default values
 //
 function is_<?php echo $is['TableName'];?>_create() {
-  // instead of replacing the current page with a referenced URL
-  // we will collect the elements from the form, submit them to the
+  // collect the elements from the form, submit them to the
   // server in a POST message within a JSON structure, then get back
   // whatever it likes to send us, and display that in place of the form.
   const e = new FormData(document.getElementById("createForm"));
@@ -62,10 +76,10 @@ function is_<?php echo $is['TableName'];?>_create() {
   pkg = JSON.stringify(k);
   // From here, call the server API with the JSON string.
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
-  const xhr = new XMLHttpRequest();
-  xhr.onload = function () {
+  myonload = function () {
     loc = window.location;
-    alert(`is_<?php echo $is['TableName'];?>_create().onload: ${xhr.status} ${xhr.response} at ${loc}`); // says Loaded, 1. Doesn't echo stored values.
+    // alert here says Loaded, 1. Doesn't echo stored values.
+    alert(`is_<?php echo $is['TableName'];?>_create():onload: ${this.status} ${this.response} at ${loc}`); // 
 /*    form = getElementById("createForm");
     for each element in xhr.response
     	list = getElementsByName(element's name)
@@ -77,15 +91,7 @@ function is_<?php echo $is['TableName'];?>_create() {
     	set formElement.value = xhr.response.element.value;
  */
   };
-  xhr.open("POST",url,true); // POST adds a new row to the table
-  msg = "in is_<?php echo $is['TableName']; ?>_create(), form data|JSON=" + pkg + ", url=" + url;
-  console.log(msg);
-  xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
-  xhr.setRequestHeader("Access-Control-Allow-Origin","<?php echo "$is[URL]/$is[Path]/$is[Name]/"; ?>");
-  xhr.setRequestHeader("Access-Control-Allow-Methods","POST,PUT");
-  xhr.send(pkg);
-  alert("xhr.send(" + pkg + ") sent.");
-  return false; // Supposedly, if we don't return false, the page will reload, overwriting modified widgets with default values.
+  return isCreate(url,pkg,myonload); 
 }
 
 //
@@ -103,25 +109,26 @@ var InputTypeLookup = new Object;
     }
  ?>
 
-function gotPut(responseText,parentName,elementSet) {
+function gotPut(responseText,parentName) { // elementSet removed.
     got = JSON.parse(responseText);
-    alert("gotPut(" + responseText + "," + parentName + "," + elementSet + ")");
+    alert("gotPut(" + responseText + "," + parentName + ")"); //  + "," + elementSet removed.
     // now for each element in got => fea val make an input with name=fea, id=fea, type = $InputType value=val
     parent = document.getElementById(parentName);
-/*
     for (let key in got) {
-      let inp = document.createElement("input");
-      inp.setAttribute("id",key);
-      inp.setAttribute("name",key);
-      inp.setAttribute("type",InputTypeLookup[key]);
-      parent.appendChild(inp);
+        um = "is" + key + "Input";
+    	el = document.getElementById(um);
+	if (el) {
+	  el.setAttribute("value",got[key]);
+	} else {
+          let inp = document.createElement("input");
+          inp.setAttribute("id",um);
+          inp.setAttribute("name",um);
+          inp.setAttribute("type",InputTypeLookup[key]);
+          inp.setAttribute("value",got[key]);
+          parent.appendChild(inp);
+        }
     }
- */
-    for (let key in got) {
-      document.getElementById("is" + key + "Input").setAttribute("value",got[key]);
-    }
-   
-}
+}   
 
 function is_<?php echo $is['TableName'];?>_read(
 	      the_id = -1,
@@ -147,21 +154,13 @@ function is_<?php echo $is['TableName'];?>_read(
   // GET the id row and alert its contents.
   // From here, call the server API with the JSON string.
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php?id="; ?>"+ requestID;
-  const xhr = new XMLHttpRequest();
-  xhr.overrideMimeType("application/json");
-  xhr.onload = function () {
-	          alert("onload, load widgets into " + elementSet);
-		  gotPut(xhr.responseText,divName,elementSet);
+
+  myonload = function () {
+     alert("onload, load widgets into " + divName);
+     gotPut(this.responseText,divName); /// ,elementSet
   };
-  xhr.open("GET",url,true); // 
-  msg = "in is_<?php echo $is['TableName']; ?>_read() with id="+requestID;
-  console.log(msg);
-  xhr.setRequestHeader("Content-type","application/json; charset=utf-8"); // on send or load?
-  // xhr.setRequestHeader("Access-Control-Allow-Origin",url);
-  // xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
-  xhr.send("");
-  alert("xhr.send([Empty body]) sent to " + url);
-  return false; // we don't need a whole page reload after all this work.
+
+  return isRead(url,"",myonload);
 }
 
 //
@@ -173,28 +172,19 @@ function is_<?php echo $is['TableName'];?>_read(
 // .._updateUI() handles the updateState state machine, and
 //   .._update() makes the actual update call: collect/send data, receive/display data
 
-function is_<?php echo $is['TableName'];?>_update(jsonUpdateStr) {
-  // is..update() collects the elements from the form, POSTs them as JSON to the
+function is_<?php echo $is['TableName'];?>_update() {
+  // is..update() collects the elements from the form, PUTs them as JSON to the
   // server, then gets back whatever it likes to send us, and displays that in the form
 
   alert("3 in is_<?php echo $is['TableName']; ?>_update(), state="+uState);
-
   const e = new FormData(document.getElementById("isUpdateForm"));
   let k = {};
   for (const [key,value] of e.entries()) { k[key] = value } // uses name attribute which is the bare $colName
   pkg = JSON.stringify(k);
-  // From here, call the server API with the JSON string as body.
+  myonload = function () { alert(`update response loaded: ${this.status} ${this.response}`); };
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
-  const xhr = new XMLHttpRequest();
-  xhr.onload = function () { alert(`loaded: ${xhr.status} ${xhr.response}`); };
-  xhr.open("PUT",url,true); // POST adds a new row to the table
-  msg = "in is_<?php echo $is['TableName']; ?>_update(), form data|JSON=" + pkg + ", url=" + url;
-  console.log(msg);
-  xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
-  xhr.setRequestHeader("Access-Control-Allow-Origin","<?php echo "$is[URL]/$is[Path]/$is[Name]/"; ?>");
-  xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
-  xhr.send(pkg);
-  alert("xhr.send(" + pkg + ") sent.");
+
+  return isUpdate(url,pkg,myonload);
 }
 
 // Update related globals.
@@ -264,8 +254,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 		 chosenID = document.getElementById("updateID").value;
     	    	 // alert("7 in is_<?php echo $is['TableName']; ?>_updateUI(), state=CHOOSEROW, chosenID=" + chosenID);
 		 div.innerHTML = uTop
-		  +  "<B>Modify row " + chosenID + " from table <?php echo $is['TableName']; ?>:</B><BR>"
-		  +  "<input type=hidden name=\"" + chosenID + "\">\n"
+		  +  "<B>Ok let's modify row " + chosenID + " from table <?php echo $is['TableName']; ?>:</B><BR>"
 		  +  "<div id=updateElementSet>updateElementSet div here" // might be optional
 		  // build structure: a set of inputs for each column.
 		  // XXX future: move each input into the HTML where targets for each reside.
@@ -273,10 +262,10 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 		  // text, graphics etc. that you like but the inputs would then go into the right place.
 		  // meanwhile ugly: unlabelled widgets in a row within the form inside updateElementSet.
 		  <?php foreach ( $is['Columns'] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
-		          if ($id != 'id') {
+		          // if ($id != 'id') {
 			    echo " + '<INPUT name=\"{$colName}\" id=\"is{$colName}Input\" "
 			         . "type=\"$InputType\" value=\"{$def}\" oninput=\"activeUpdateSubmit(true)\">'\n\t";
-		          }
+		          // }
     	                } 
 	           ?>
 		  +  "<input id=\"isUpdateSubmit\" type=\"submit\" value=\"SAVE[inactive]\">"
@@ -321,6 +310,7 @@ function is_<?php echo $is['TableName'];?>_updateUI() {
 //
 // just delete one, using its ID.
 //
+
 function is_<?php echo $is['TableName'];?>_delete() {
   const e = new FormData(document.getElementById("deleteForm"));
   entries = "..."; pkg = ""; requestID = -1;
@@ -335,15 +325,8 @@ function is_<?php echo $is['TableName'];?>_delete() {
 
   // From here, call the server API with the JSON string.
   url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
-  const xhr = new XMLHttpRequest();
-  xhr.onload = function () { alert(`loaded: ${xhr.status} ${xhr.response}`); };
-  xhr.open("DELETE",url,true); // POST adds to table; PUT replaces known id in table (=update)
-  msg = "in is_<?php echo $is['TableName']; ?>_delete(), id=" + requestID + ", url=" + url;
-  console.log(msg);
-  xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
-  xhr.send(pkg);
-  alert("xhr.send(" + pkg + ") sent.");
-  return false; // false here prevents form submission after onload i.e. full page reload.
+  myonload = function () { alert(`isDelete response loaded: ${this.status} ${this.response}`); };
+  return isDelete(url,pkg,myonload);
 }
 
 <?php
@@ -393,9 +376,9 @@ function addSearch() {
     +  "also showing the count of matches, or show error if ID doesn't "
     +  "exist or something failed in transit. "
     +  "<FORM id='searchForm' name='searchForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_search()\">"
+    +  "Version 0.2: show all "
     +  "<input type=\"submit\" value=\"Search\">"
     +  "</FORM>";
-  // div.onclick=is_<?php echo $is['TableName']; ?>_search();
 }
 
 function addCreate() {
@@ -411,7 +394,6 @@ function addCreate() {
        ?>"
     +  "<input type=\"submit\" value=\"Create New <?php echo $is['TableName']; ?>\">"
     +  "</FORM>\n";
-  // div.onclick=is_<?php echo $is['TableName']; ?>_create();
   // A form has action, onsubmit, and inputs with type, value, and onclick.
   //    action is supposed to be a URL to go to with the form wrapped up in method=(GET|POST)
   // 	onsubmit can return true or false to prevent action if data is invalidated.
@@ -444,7 +426,6 @@ function addRead() {
     +  "<?php echo "<BR>ID: <input type=number name=id>"; ?>"
     +  "<input type=\"submit\" value=\"GET/Read/Display Specified Row\">"
     +  "</FORM></P>";
-  // div.onclick=is_<?php echo $is['TableName']; ?>_read();
 }
 
 function addUpdate() { // Init updateState state machine and call .._updateUI()
@@ -464,5 +445,85 @@ function addDelete() {
     +  "<input type=\"id\" name='id' value=\"50\">"
     +  "<input type=\"submit\" value=\"Delete\">"
     +  "</FORM>";
-  // div.onclick=is_<?php echo $is['TableName']; ?>_delete();
+}
+
+// ----------------------
+
+function is(op,server,json,onload) {
+  if      (op=="search") { return isSearch(server,json,onload); }
+  else if (op=="create") { return isCreate(server,json,onload); }
+  else if (op=="read"  ) { return isRead(  server,json,onload); }
+  else if (op=="update") { return isUpdate(server,json,onload); }
+  else if (op=="delete") { return isDelete(server,json,onload); }
+  else                   { return false;                        }
+}
+
+function isSearch(server,json,onload) {
+  alert("called isSearch(" + server + "," + json + ",onload)");
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET",server,true); 
+  msg = "in isSearch(), form data|JSON=" + json + ", server=" + server;
+  console.log(msg);
+  xhr.onload = onload;
+  xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
+  xhr.setRequestHeader("Access-Control-Allow-Origin",server);
+  xhr.setRequestHeader("Access-Control-Allow-Methods","GET");
+  xhr.send(pkg);
+  alert("isSearch(): xhr.send(" + pkg + ") sent.");
+  return false; // Supposedly, if we don't return false, the page will reload, overwriting modified widgets with default values.
+}
+
+function isCreate(server,json,onload) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST",server,true); // POST adds a new row to the table
+  msg = "in isCreate(), form data|JSON=" + json + ", server=" + server;
+  console.log(msg);
+  xhr.onload = onload;
+  xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
+  xhr.setRequestHeader("Access-Control-Allow-Origin",server);
+  xhr.setRequestHeader("Access-Control-Allow-Methods","POST,PUT");
+  xhr.send(pkg);
+  alert("isCreate(): xhr.send(" + pkg + ") sent to url " + server);
+  return false; // Supposedly, if we don't return false, the page will reload, overwriting modified widgets with default values.
+}
+
+function isRead(server,json,onload) {
+  const xhr = new XMLHttpRequest();
+  xhr.overrideMimeType("application/json");
+  xhr.open("GET",url,true); // 
+  msg = "in isRead(" + server + ",json=" + json + ",onload)";
+  console.log(msg);
+  xhr.onload = onload;
+  xhr.setRequestHeader("Content-type","application/json; charset=utf-8"); // on send or load?
+  // xhr.setRequestHeader("Access-Control-Allow-Origin",url);
+  // xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
+  xhr.send("");
+  alert("xhr.send([Empty body]) sent to " + url);
+  return false; // we don't need a whole page reload after all this work.
+}
+
+function isUpdate(server,json,onload) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("PUT",url,true); // PUT: we know where it gets PUT so it's an update, whereas POST adds a new row to the table
+  msg = "in is_<?php echo $is['TableName']; ?>_update(), form data|JSON=" + pkg + ", url=" + url;
+  console.log(msg);
+  xhr.onload = onload;
+  xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
+  xhr.setRequestHeader("Access-Control-Allow-Origin","<?php echo "$is[URL]/$is[Path]/$is[Name]/"; ?>");
+  xhr.setRequestHeader("Access-Control-Allow-Methods","PUT");
+  xhr.send(pkg);
+  alert("xhr.send(" + pkg + ") sent.");
+}
+
+function isDelete(server,json,onload) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("DELETE",server,true); // XXX careful now, do we want anyone to be able to DELETE anything?
+  msg = "in isDelete(), id=" + json;
+  console.log(msg);
+  xhr.onload = onload;
+  xhr.setRequestHeader("Content-type","application/json; charset=utf-8");
+  xhr.send(json);
+  alert("xhr.send(" + pkg + ") sent.");
+  return false; // false here prevents form submission after onload i.e. full page reload.
+  
 }

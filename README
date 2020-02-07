@@ -242,3 +242,67 @@ RELATED WORK:
    Thomas C Veatch PhD
    tcveatch@gmail.com
    1-206-858-2633
+
+------------------------ Design and Bug Notes ------------------------
+   Open Bugs & Goals:
+
+Think a bit, Tom.  We are basically dealing with a set of pages in
+front of a set of SCRUD operations, with various transitions among
+them.
+
+   Transition from Create to Update (Save[Inactive]) displaying the created record.
+   Transition from Read to Update, displaying the read record.
+   Record display occurs
+   	  after Read
+	  during Update process after read and during Save[active] and Save[inactive]
+	  during Create
+	  before Delete
+
+More generally: 
+
+CREATE successors: edit+UPDATE, DELETE, CLEAR+edit+CREATE, Pick some + VIEW MULTIPLE, pick one + READ
+READ   successors: edit+UPDATE, DELETE, CLEAR+edit+CREATE, Pick some + VIEW MULTIPLE, pick one + READ
+UPDATE successors: edit+UPDATE, DELETE, CLEAR+edit+CREATE, Pick some + VIEW MULTIPLE, pick one + READ
+VIEW MULTIPLE: successors: pick 1+READ |some + VIEW MULTIPLE
+DELETE successors: stay in VIEW MULTIPLE with one less, READ next id, fresh CREATE, Pick some + VIEW MULTIPLE, pick one + READ
+
+Each of these is a UI tab or page, and the whole thing amounts to a
+database editor.  But individual applications might be single-entry
+editors, or note-takers-only, or flexible search pages, or scientific
+data extractors (|R), or data editing/re-coding UIs, or a combination
+of these, or related subsets one for the public and others for
+authorized user or for the developer, a scientist etc.
+
+Dariush's idea is simply provide a service with a defined web API,
+then let the UI be separately programmed. So IS provides a super-set
+of that, with example calls.  The API is actually hidden in the
+client/server interaction.  To form a clean client-side JS API,
+separate it from the UI: require the data to come as function
+arguments not as inputs stored mysteriously somewhere in some
+arbitrary form document element to be extracted within the API itself.
+Then the developer can call the API functions on the client, but still
+the information flow in the API would be clean.
+
+A determined user might indeed pull code out for various purposes from
+this merely-exemplifying UI, to create their own API, but it would be
+nice of us to do that for them.
+
+   x Refactor API from UI.
+   x Debug refactored API+UI: x Create, x Read, x Delete, x Update
+   x Widgetry should be independent of row data copying.
+   x  Provide a hook in the widgetry to hang the 
+   x  Let onload call a copy function with a widget selector parameter. (gotPut()
+   x    then for each column put the received data into the selected widget by colomn
+
+I say build myself a couple apps for Leads and Expenses, and see how
+it goes.  Leads is basically CREATE plus later UPDATE as status
+changes, multiple tables one for each lead ID and one for each status
+change, plus VIEW MULTIPLE by date or etc to allow choosing 1 by name
+for UPDATE.
+
+Expenses is basically: (1) CREATE with a photo upload plus (2) an
+UPDATE (re-code) as to entered-by, vendor/payee, amount, date,
+from-account, maybe a boolean checkoff for did it get transferred to
+QB or not. Then (3) VIEW MULTIPLE within a date range to then add one
+(CREATE) or pick one (READ).
+

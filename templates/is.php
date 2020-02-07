@@ -11,7 +11,7 @@
  */
   $is =  [
           "Name" => "Test",
-          "URL" =>  "http://tomveatch.com",
+          "URL" =>  "http://www.tomveatch.com",
           "User" => "public_user", // crud ops only on this table within the 'tv' database.
           "Pwd" =>  "Mousbusication", 
           "Path" => "ops/is",

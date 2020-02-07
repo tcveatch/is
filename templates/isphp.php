@@ -51,11 +51,7 @@
    x   first it's xhr.send(l) to isTest.php; then into lala land.
    x   sql undefined isTest.php line 87.
    x UI for Create should let you put in info to go into the fields.
-   UI for Read/Search should let you pick from existing row ids, or check boxes on a subset of rows in a table
-      or specify values or ranges of values or regexes to match values for different rows
-      and to combine the choices with ANDs and ORs.  Hmm.
-      So while creating the UI for a subset-selection, we already need to select * and make a table with the result
-      and provide checkboxes or subset-selection criteria before even doing the Read/Search.
+   x UI for Read should let you pick from an existing row id.
    x   Let's do Search later and just do Read for now, and let's assume Read requires a row id only.
    x   So the initial UI is a numeric field to put in your own row id,
    x   and the result is displayed in some default display format for a record based on is.php:Columns.
@@ -70,18 +66,6 @@
    x  which then fails with headers not set properly, apparently.
    x  becausee isCorona.php is an empty file!
    x  // the onsubmit function should end with "return false;" to prevent additional submit handling.
-   Open Bugs & Goals:
-   Transition from Create to Update (Save[Inactive]) displaying the created record.
-   Transition from Read to Update, displaying the read record.
-   Record display occurs
-   	  after Read
-	  during Update process after read and during Save[active] and Save[inactive]
-	  during Create
-	  before Delete
-   Widgetry should be independent of row data copying.
-     Provide a hook in the widgetry to hang the 
-     Let onload call a copy function with a widget selector parameter.
-       then for each column put the received data into the selected widget by colomn
    */
   $debug=1;
   if (defined('STDIN')) { $NAME=$argv[1];      /* Run this script on the command line and give the app name as an argument. */ }
@@ -119,7 +103,7 @@ if ($debug) error_log ( "XXX headers: $s XXX\n",3,"/tmp/isphp.err");
 if ($method=="OPTIONS") {
   http_response_code(200); // 200 OK, or 204 No Content.
   header("Accept: GET,PUT,POST,DELETE,OPTIONS");
-  header("Access-Control-Allow-Origin: http://www.tomveatch.com");
+  header("Access-Control-Allow-Origin: <?php echo $is['URL'];?>");
   header("Access-Control-Allow-Methods: GET,PUT,POST,DELETE,OPTIONS");
   header("Access-Control-Allow-Headers: access-control-allow-methods, access-control-allow-origin, Content-Type, Accept, Origin,");
   exit(0);
