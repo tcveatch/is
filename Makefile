@@ -1,4 +1,4 @@
-AUTOGENS = $(APP)/is$(APP).db $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/index.php
+AUTOGENS = $(APP)/is$(APP).db $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/index.php $(APP)/isapi.js $(APP)/isvue.js
 
 all: $(APP)
 
@@ -57,7 +57,7 @@ FYI:
 	$(APP)/is$(APP).db update id=2 var=modval
 	$(APP)/is$(APP).db delete id=2
 
-$(APP): $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/is$(APP).db $(APP)/index.php
+$(APP): $(APP)/is$(APP).php $(APP)/is$(APP).js $(APP)/is$(APP).db $(APP)/index.php $(APP)/isapi.js $(APP)/isvue.js
 
 $(APP)/$(APP).php: templates/is.php
 	# Only do this step manually, and once, before editing for your own application
@@ -76,3 +76,10 @@ $(APP)/is$(APP).js: templates/isjs.php $(APP)/$(APP).php
 $(APP)/is$(APP).db: templates/isdb.php $(APP)/$(APP).php
 	php templates/isdb.php  $(APP) > $(APP)/is$(APP).db
 	chmod 755 $(APP)/is$(APP).db
+
+$(APP)/isapi.js: templates/isapijs.php $(APP)/$(APP).php
+	php templates/isapijs.php $(APP) > $(APP)/isapi.js
+
+$(APP)/isvue.js: templates/isvuejs.php $(APP)/$(APP).php
+	php templates/isvuejs.php  $(APP) > $(APP)/isvue.js
+
