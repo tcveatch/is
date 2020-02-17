@@ -246,6 +246,9 @@ RELATED WORK:
 ------------------------ Design and Bug Notes ------------------------
    Open Bugs & Goals:
 
+   TxTime fails: shows up as zeros(maybe js default 0 overrides mysql default?)
+   Backup process fails: can't log in as admin.
+
 Think a bit, Tom.  We are basically dealing with a set of pages in
 front of a set of SCRUD operations, with various transitions among
 them.

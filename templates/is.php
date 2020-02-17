@@ -25,8 +25,9 @@
 		             [    3, "TestS","String", 20,  "",     "TEXT", "VARCHAR(20) CHARACTER SET utf8" ],
 		             [    4, "TestB","Boolean", 1,   1, "checkbox", "BIT"     ], // checkbox|radio
 		             [    5, "TestE","Enum",    1,   1,   "select", "ENUM('val1','val2','val3')" ] 
+		             [    6, "TxTime",  "Date", 1,   0,   "hidden", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" ],
 		     ],
-	  "Adds"     => [    [    6, "TestD","Date",    1,   0,     "date", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" ]
+	  "Adds"     => [    [    7, "TestD","Date",    1,   0,     "date", "DATETIME DEFAULT CURRENT_TIMESTAMP" ]
 	  	     // If you are going to make a change in a table adding a column,
 		     // then use this in $is$NAME.db modify_table first, then move
 		     // Adds into Columns to reflect new reality.
