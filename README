@@ -14,7 +14,9 @@ operations all from the perspective of a web client.
 You can use the generated, customized code bits to set up, maintain,
 and interact with your database instead of writing your own PHP SQL
 server and a client-side Javascript API to interact with each other to
-carry out the SCRUD operations using your information structure.
+carry out the SCRUD operations using your information structure.  A
+barebones html index.php (and, on the way, a barebones Vue.js app) are
+provided which use the client-side isapi.js API as proof of concept.
 
 
 INTRODUCTION:
