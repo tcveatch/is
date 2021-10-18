@@ -1,5 +1,5 @@
+<?php include "/var/www/shared/local.php"; ?>
 <?php
-
 //
 // generates a Vue based UI for one or more basic SCRUD apps.
 //
@@ -11,6 +11,11 @@ a DB with ByWhom WhenSeen WhatWasSeen
 Mainly the point of this will be to have a minimum vue app ish thing
 that moves data from the UI over to calling isapi.js calls.
 */
+
+$debug=0;
+if (defined('STDIN')) { $NAME=$argv[1];      }
+else                  { $NAME=$_GET['NAME']; }
+include "$NAME/$NAME.php";
 
 ?>
 <!DOCTYPE html><html><head>

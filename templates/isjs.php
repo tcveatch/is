@@ -1,3 +1,4 @@
+<?php include "/var/www/shared/local.php"; ?>
 <?php
 //
 // isjs.php
@@ -50,12 +51,16 @@ function is_<?php echo $is['TableName']; ?>_search() {
       regex in an input element for that subset.
     	[a, b], [a,b] for ranges
    */
-  url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>";
-  pkg = '{"search":"id>0"}'
+
+  var st = document.getElementById('searchString').value;
+  url = "<?php echo "$is[URL]/$is[Path]/$is[Name]/is$is[TableName].php"; ?>"
+      + "?search=" + (st?st:"id>0");
+  pkg = null;    
   myonload = function () {
-    alert("set by is_<?php echo $is['TableName']; ?>_search(), called after xhr.send in isSearch()");
+    alert("myonload in is_<?php echo $is['TableName']; ?>_search(), called after xhr.send in isSearch()");
+    gotPut(this.responseText,"searchResults"); 
   }    	    
-  return isSearch(url,pkg,onload);
+  return isSearch(url,pkg,myonload);
 }
 
 //
@@ -109,24 +114,38 @@ var InputTypeLookup = new Object;
     }
  ?>
 
-function gotPut(responseText,parentName) { // elementSet removed.
+function objectPut(anObject,parent) {
+  // now for each element in got => fea val make an input with name=fea, id=fea, type = $InputType value=val
+  for (let key in anObject) {
+    um = "is" + key + "Input";
+    el = document.getElementById(um);
+    if (el) {
+      el.setAttribute("value",anObject[key]);
+    } else {
+      let inp = document.createElement("input");
+      inp.setAttribute("id",um);
+      inp.setAttribute("name",um);
+      inp.setAttribute("type",InputTypeLookup[key]);
+      inp.setAttribute("value",anObject[key]);
+      parent.appendChild(inp);
+    }
+  }
+}
+
+function gotPut(responseText,parentName) { 
     got = JSON.parse(responseText);
-    alert("gotPut(" + responseText + "," + parentName + ")"); //  + "," + elementSet removed.
-    // now for each element in got => fea val make an input with name=fea, id=fea, type = $InputType value=val
+    alert("gotPut(" + responseText + "," + parentName + ")"); 
+    
     parent = document.getElementById(parentName);
-    for (let key in got) {
-        um = "is" + key + "Input";
-    	el = document.getElementById(um);
-	if (el) {
-	  el.setAttribute("value",got[key]);
-	} else {
-          let inp = document.createElement("input");
-          inp.setAttribute("id",um);
-          inp.setAttribute("name",um);
-          inp.setAttribute("type",InputTypeLookup[key]);
-          inp.setAttribute("value",got[key]);
-          parent.appendChild(inp);
-        }
+    parent.innerHTML = ''; // clear before adding.
+    frag   = document.createDocumentFragment();
+    if (Array.isArray(got)) { // loop over return array
+      for (index in got) {
+        objectPut(got[index],frag);
+      }
+      parent.appendChild(frag);
+    } else { // not an array, do it once
+      objectPut(got,parent);
     }
 }   
 
@@ -157,7 +176,7 @@ function is_<?php echo $is['TableName'];?>_read(
 
   myonload = function () {
      alert("onload, load widgets into " + divName);
-     gotPut(this.responseText,divName); /// ,elementSet
+     gotPut(this.responseText,"readResults");
   };
 
   return isRead(url,"",myonload);
@@ -368,17 +387,17 @@ function is_<?php echo $is['TableName'];?>_delete() {
 function addSearch() {
   div = document.getElementById("isSearchDiv");
   div.innerHTML 
-    += " Spec: UI before operation is initiated: criteria-specifying widgetry. "
-    +  "Values are gleaned here when activated by software due to who knows "
-    +  "what, so it knows how to search.  Action search(criteria) brings an "
-    +  "array of matching records from the server to here show them "
+    += " Enter an SQL search string like 'id>1600' or etc, and click Search. " 
+    +  "Values are returned from a SELECT WHERE.  Action search(criteria) brings an "
+    +  "array of matching records from the server to here.  Show them "
     +  "displayed UI after operation completes: put them in a datatable, "
     +  "also showing the count of matches, or show error if ID doesn't "
     +  "exist or something failed in transit. "
     +  "<FORM id='searchForm' name='searchForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_search()\">"
-    +  "Version 0.2: show all "
+    +  "<input id='searchString' type=\"text\" value=\"id>100\">"
     +  "<input type=\"submit\" value=\"Search\">"
-    +  "</FORM>";
+    +  "</FORM></P>"
+    +  "<div id='searchResults'>search Results</div>\n";
 }
 
 function addCreate() {
@@ -389,11 +408,12 @@ function addCreate() {
     +  "<FORM id='createForm' name='createForm' onsubmit=\"return is_<?php echo "$is[TableName]";?>_create()\">"
     +  "<?php 
 	 foreach( $is['Columns'] as list( $id, $colName, $type, $N, $def, $InputType, $SQL_Type )) {
-	   echo ($InputType == 'hidden'?"":"<BR>ok: {$colName}") . " <input type=$InputType name={$colName} value={$def}>";
+	   echo ($InputType == 'hidden'?"":"<BR>{$colName}") . " <input type=$InputType name={$colName} value={$def}>";
          } 
        ?>"
     +  "<input type=\"submit\" value=\"Create New <?php echo $is['TableName']; ?>\">"
     +  "</FORM>\n";
+
   // A form has action, onsubmit, and inputs with type, value, and onclick.
   //    action is supposed to be a URL to go to with the form wrapped up in method=(GET|POST)
   // 	onsubmit can return true or false to prevent action if data is invalidated.
@@ -425,7 +445,8 @@ function addRead() {
     +  "<B>Enter a row ID from table <?php echo $is['TableName']; ?>:</B><BR>"
     +  "<?php echo "<BR>ID: <input type=number name=id>"; ?>"
     +  "<input type=\"submit\" value=\"GET/Read/Display Specified Row\">"
-    +  "</FORM></P>";
+    +  "</FORM></P>"
+    +  "<div id='readResults'>read Results</div>\n";
 }
 
 function addUpdate() { // Init updateState state machine and call .._updateUI()

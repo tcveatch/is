@@ -44,7 +44,6 @@ and history.
 Feel free to contact the author, Thomas C Veatch at his email,
 first initial, middle initial, last name at g mail dot come.
 
-
 STEPS TO FOLLOW:
 
 So here's what you do.
@@ -89,7 +88,7 @@ So here's what you do.
 
   * It will also auto-generate the SQL code that will create the
     database, table, and columns that are needed to support your
-    particular information structure.  Run % $(APP)/$(APP).db without
+    particular information structure.  Run % $(APP)/is$(APP).db without
     arguments to see what you can do with it. Do this and follow the
     resulting instructions to set up your database to have the
     information structure in a table in it.  Create user, then DB,
@@ -118,11 +117,11 @@ Look at templates/*:
   isdb.php     generates MySQL instructions and code for setup,
   	       maintenance, and all the SCRUD ops.
   isphp.php    generates PHP server-side request-handlers for the IS SCRUD ops.
-  isjs.php     generates a JS library with client-side functions that
-  	       connect to the server to do IS SCRUD ops, and with UI
-  	       modification functions that insert IS functionality
-  	       onto a set of HTML divs.
-  isindex.php: generates a sample index.php file to offer SCRUD on the
+  isapijs.php  generates a JS library with client-side functions that
+  	       connect to the server to do IS SCRUD ops.
+  isjs.php     generates a JS library with UI modification functions that
+  	       insert IS functionality onto a set of HTML divs.
+  isindex.php  generates a sample index.php file to offer SCRUD on the
   	       given information structure.
 
 
@@ -134,10 +133,12 @@ FUTURE STEPS:
   x Run some Create + Updates to put stuff in the DB.
   * Run a backup, delete the whole DB, and restore cycle.
   * Do a derived app for Dog Names.
+  * Another app: Corona
   * Another app: comments on ontheground.php
   * Another app: IOT monitoring dashboard from any device like a thermostat.
   * Another app: a social website.
   * Another app: PlayAlong
+  * Another app: MyWord 
   * Think up more apps.
 
 
@@ -177,13 +178,14 @@ with your app's name):
 
   templates/isindex.php => APP/index.php: a client page with the
       beginnings of the CRUD UI.  This just creates a place to hang
-      stuff, and the Javascript does almost all of the HTML work.
+      stuff, and the client-side Javascript does almost all of the
+      HTML work.
 
   template/isdb.php => APP/isAPP.db: provides instructions on how to
       create and maintain a changing database, both to CREATE anew and
-      to MODIFY table for changes.  Also shows what SQL looks like,
-      to do CRUD ops on the IS records on the server, so you know how
-      to do them.
+      to MODIFY table for changes.  Also shows what SQL looks like, to
+      do CRUD ops on the IS records on the server, as an informative
+      example, so you know how to do them.
 
   template/isphp.php => APP/isAPP.php: PHP server-side API
       implementation, provides an (authenticated?) server API to those
@@ -191,20 +193,22 @@ with your app's name):
       client.  It's middleware, between the client and the DB.
       
   templates/isjs.php => APP/isAPP.js: A JS library/function file that
-      implements CRUD-related UI displays and a CRUD API to be called
-      within the client and that makes the related server calls to the
-      PHP API.  Enough UI is built to let user initiate a New,
-      Search/Read, EDIT, and Delete and to use the JS API to make them
-      happen through server requests and return data handlers.
+      implements CRUD-related UI displays.  Enough UI is built to let
+      user initiate a New, Search/Read, EDIT, and Delete and to use
+      the JS API to make them happen through server requests and
+      return data handlers.
 
+  templates/isapijs.php => APP/isapi.js: A JS library/function file
+      that implements a CRUD API to be called within the client and
+      that makes the related server calls to the PHP API.
 
 RELATED WORK:
 
   Incidentally there's a thing out there called PHP-CRUD-API, but I'm
   not that smart and found it to be intimidatingly, and
-  incomprehensibly complex and enormous, and I thought I'd spend more
-  time figuring it out than writing my own, so here you go.  I did
-  steal the idea from PHP-CRUD-API of using HTTP request methods
+  incomprehensibly complex and enormous, and I thought I'd spend a lot
+  more time figuring it out than writing my own, so here you go.  I
+  did steal the idea from PHP-CRUD-API of using HTTP request methods
   (POST, GET, PUT, DELETE) as both synonyms for CRUD operations and as
   the means of communicating through HTTP which of the operations is
   being requested.  So it's not all POSTs with a JSON structure
@@ -311,3 +315,19 @@ from-account, maybe a boolean checkoff for did it get transferred to
 QB or not. Then (3) VIEW MULTIPLE within a date range to then add one
 (CREATE) or pick one (READ).
 
+Some apps:
+
+Leads Update UI: Title, Name, address, created on date, last mod date
+buttons for Convert to Tenant, and for Save.
+
+Tenant Update UI: Name, Email, Tel, Due $, Due Date,
+                  REceived|Deposited $_ by _ [Submit]
+
+                  [Login]
+EvaluateProps --> [E]
+  ManageProps --> [M]
+
+Tenants @ Address
+	Name Tel Email Since Lease-Exp $late $days
+	[Go]-> TU
+	

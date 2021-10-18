@@ -1,3 +1,4 @@
+<?php include "/var/www/shared/local.php"; ?>
 <?php
 //
 // isdb.php:
@@ -6,7 +7,8 @@
   /* This program uses an IS data structure (in $NAME.php) to
      autogenerate (via PHP self-rewriting code) a set of IS MySQL commands
      to set up, grow, shrink, maintain, backup,
-     and to use (via a SCRUD API called from server side PHP) a database.
+     and to access (via a SCRUD API called from server side PHP) a database.
+     The actual access commands are found in 
    */
   $debug=0;
   
@@ -63,7 +65,15 @@ if   [ $1 == "create_user" ]; then
   echo "After that I created user tv with all privileges, then user public_user with CRUD privileges";
   echo "cpanel->MySQL DB Wizard->Create User public_user, ";
   echo "  password ...->privileges DELETE INSERT SELECT UPDATE";
-  echo "Also see is.php";
+  echo "Also see is.php.  Or...";
+  echo "mysql> CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';"
+  echo "mysql> GRANT ALL PRIVILEGES ON * . * TO 'username'@'localhost';"
+  echo " or (CRUD): INSERT SELECT UPDATE DELETE"
+  echo "mysql> FLUSH PRIVILEGES;"
+  echo "mysql> SHOW GRANTS FOR 'username'@'localhost';"
+  echo "mysql> QUIT;"
+  echo "% mysql -u username -p   # test if it works."
+  echo "mysql> USE tv; SELECT * FROM App;"
 elif [ $1 == "create_db" ]; then
   # Context of use: One time only, by the administrator, perhaps also inside the restore operation from a backup.
   echo "First create a DB, then users, then give users privileges on it.";
@@ -112,6 +122,8 @@ elif [ $1 == "read" ]; then
   # Context of use: by the app itself when used by a client
   # expecting features to be "*" or a joined subset of column names.
   # expecting SelectString to look like "WHERE id=23" or some other search criteria
+  echo "<?php echo "$pfx SELECT " . ($features?$features:"*") . " FROM $is[DBName].$is[TableName] SelectString;"; ?>";
+elif [ $1 == "search" ]; then
   echo "<?php echo "$pfx SELECT " . ($features?$features:"*") . " FROM $is[DBName].$is[TableName] SelectString;"; ?>";
 elif [ $1 == "update" ]; then
   echo Context of use: by the app itself when used by a client

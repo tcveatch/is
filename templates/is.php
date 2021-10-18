@@ -1,3 +1,4 @@
+<?php include "/var/www/shared/local.php"; ?>
 <?php
 //
 // is.php
@@ -11,7 +12,7 @@
  */
   $is =  [
           "Name" => "Test",
-          "URL" =>  "http://www.tomveatch.com",
+          "URL" =>  "https://<?php echo "$tomveatch";?>.com",
           "User" => "public_user", // crud ops only on this table within the 'tv' database.
           "Pwd" =>  "Mousbusication", 
           "Path" => "ops/is",

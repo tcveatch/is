@@ -1,3 +1,4 @@
+<?php include "/var/www/shared/local.php"; ?>
 <?php
   //
   // isphp.php (PHP generating PHP)
@@ -10,8 +11,7 @@
 
      To use it:
      % php isphp.php $NAME
-     or from a browser:
-     http:path.to.here/isphp.php$NAME=yourtablename
+
    */
   /* Bug trail:
 
@@ -90,11 +90,11 @@
 /*
  * Phase 1: get ready.
  */
-$debug    = 1;
-$method   = (isset($_SERVER["REQUEST_METHOD"]) ? $_SERVER["REQUEST_METHOD"] : "NONE");
-error_log ( "method=$method\n",3,"/tmp/isphp.err");
-$h = getallheaders();
-$s = "";
+$debug  = 0;
+$method = (isset($_SERVER["REQUEST_METHOD"]) ? $_SERVER["REQUEST_METHOD"] : "NONE");
+error_log("method=$method\n",3,"/tmp/isphp.err");
+$h      = getallheaders();
+$s      = "";
 foreach ($h as $hdr => $hval) {
    $s .= "$hdr: $hval\n";
 }
@@ -118,13 +118,15 @@ $request  = (isset($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO']!=""
 // echo "_POST: "   ; var_dump($_POST);
 
 function var_error_log($prefix,$object=null,$suffix) {
+    // log contents of the result of var_dump( $object )
     ob_start();                    // start buffer capture
     var_dump( $object );           // dump the values
     $contents = ob_get_contents(); // put the buffer into a variable
     ob_end_clean();                // end capture
-    error_log("$prefix $contents $suffix",3,"/tmp/isphp.err");        // log contents of the result of var_dump( $object )
+    error_log("$prefix $contents $suffix",3,"/tmp/isphp.err");        
 }
 
+// grab json if any
 $phpinput = file_get_contents('php://input',true);
 error_log ( "php://input=" . ($phpinput==""?"empty":$phpinput) . "\n",3,"/tmp/isphp.err");
 $input    = ($phpinput!="" ? json_decode($phpinput,1) : NULL);
@@ -145,19 +147,6 @@ if (!$input) {
   }
 }
 
-// To do a single-row select, delete, or update, ensure the input json contains a row id element.
-if ($method=="DELETE" || $method=="GET" || $method=="PUT") { // these need to know the row to work on.
-  // var_error_log("json_decode result is: ",$input, "\n",3,"/tmp/isphp.err");
-  if     ($input != NULL)
-    $rowid  = $input['id'];
-  elseif (is_array($_GET) && isset($_GET['id']))
-    $rowid  = $_GET['id'];  // Somehow via phpinput no request data comes in message body, but it works in the URL
-  else 
-    $rowid  = -1;
-
-  error_log("rowid: $rowid\n",3,"/tmp/isphp.err");
-}
-
 // connect to the mysql database
 $link     = mysqli_connect('localhost', 
      		           '<?php echo $is['User'];?>', 
@@ -176,55 +165,107 @@ if ($method=="POST") {
   }
 }
 
-// escape the columns and values from the input object
-$columns = ((isset($input) && $input != NULL)
-	 ? preg_replace('/[^a-z0-9_]+/i','',array_keys($input))
-         : [] );
-$values  = ((isset($input) && $input != "")
-	 ? array_map(function ($value) use ($link) {
-	     if ($value===null) return null;
-	     return mysqli_real_escape_string($link,(string)$value);
-	   },array_values($input))
-	 : [] );
-/* was: 
-   $columns = preg_replace('/[^a-z0-9_]+/i','',array_keys($input));
-   $values = array_map(function ($value) use ($link) {
-     if ($value===null) return null;
-     return mysqli_real_escape_string($link,(string)$value);
-   },array_values($input));
-*/ 
+if ($method == "POST" || $method == "PUT") {
+  // only for INSERT or UPDATE 
+  // get all the entries in the table from the input JSON 
+  // escape the columns and values from the input object
+  $columns = ((isset($input) && $input != NULL)
+  	   ? preg_replace('/[^a-z0-9_]+/i','',array_keys($input))
+           : [] );
+  $values  = ((isset($input) && $input != "")
+	   ? array_map(function ($value) use ($link) {
+	         if ($value===null) return null;
+	         return mysqli_real_escape_string($link,(string)$value);
+	       },array_values($input))
+	   : [] );
+  /* was: 
+     $columns = preg_replace('/[^a-z0-9_]+/i','',array_keys($input));
+     $values = array_map(function ($value) use ($link) {
+       if ($value===null) return null;
+       return mysqli_real_escape_string($link,(string)$value);
+     },array_values($input));
+   */ 
 
-// build the SET part of the SQL command for a POST/UPDATE 
-$set = '';
-$j=0;
-for ($i=0;$i<count($columns);$i++) {
-  if ($columns[$i] != 'id') { // Exclude the id column
-    $set.=($j>0?',':'').'`'.$columns[$i].'`=';
-    $set.=($values[$i]===null?'NULL':'"'.$values[$i].'"');
-    $j++;
+  // build the SET part of the SQL command for a POST/UPDATE 
+  $set = '';
+  $j=0;
+  for ($i=0;$i<count($columns);$i++) {
+    if ($columns[$i] != 'id') { // Exclude the id column
+      $set.=($j>0?',':'').'`'.$columns[$i].'`=';
+      $set.=($values[$i]===null?'NULL':'"'.$values[$i].'"');
+      $j++;
+    }
   }
 }
- 
+
 // create SQL based on HTTP method
 switch ($method) {
+  // known-single-row read or delete: row id is in the uri.
+  // known-single-row update:         row id is in input (json)
+  // unknown-row create or search:    row id is unspecified (neither in uri nor input body json)
+
   case 'NONE':   // Get last inserted id. 
     $method="GET";
     $rowid=mysqli_insert_id($link); // if none found, mysqli_insert_id returns 0 which drops through and selects all rows.
+    if ($rowid==0) {
+      $sql = "SELECT name FROM `$table`;";
+    } else {
+      $sql = "SELECT name FROM `$table` WHERE id=" . $rowid . ";";
+    }
     error_log("method='NONE': changing to a GET for row id $rowid\n",3,"/tmp/isphp.err");
-  case 'GET':    // Read or Search
-    $sql = "SELECT * FROM `$table`".($rowid?" WHERE id=$rowid":($search?" WHERE $search":'')).";";
     break;
-  case 'PUT':    // Update (PUT=store something at a given place (since id must therefore be known, this is an UPDATE)
-       		 // respond with 200 OK.  Parse Content-* headers or reply with 501 Not Implemented.
+    
+  case 'PUT':
+    // Update (PUT=store something at a given place (since id must therefore be known, this is an UPDATE))
+    // respond with 200 OK.  Parse Content-* headers or reply with 501 Not Implemented.  
+    $rowid = $_GET['id'];
     $sql = "UPDATE `$table` SET $set WHERE id=$rowid;";
     break;
+    
   case 'POST':   // Create (POST=put something subordinate to, into the DB, thus a new id, this is a CREATE)
        		 // reply with 201 Created + entity with id + Location: header.
     $sql = "INSERT INTO `$table` (`" . implode("`,`",$columns) ."`) VALUES ('" . implode("','",$values) . "');";
     break;
+    
   case 'DELETE': // Delete
-  default:
-    $sql = "DELETE FROM `$table` WHERE id=$rowid;";
+    if (is_array($_GET) && isset($_GET['id']) && $_GET['id'] != NULL) {
+      $rowid=$_GET['id'];  // HTTP delete request has empty body so row id is in the URI as ...?id=3
+      $sql = "DELETE FROM `$table` WHERE id=" . $rowid . ";";
+      break;
+    } else if ($input != NULL && isset($input['id']) && $input['id'] != NULL) {
+      // atypical use with {"id":N} in the json body, but we'll handle it.
+      $rowid = $input['id'];
+      $sql = "DELETE FROM `$table` WHERE id=" . $input['id'] . ";";
+      break;
+    } else {
+      error_log("DELETE: $_GET lacks id field.");
+    }
+    // drop through
+
+  case 'GET':    // Read single-row or search as specified or for all
+  default:       // default is get
+    if ($input != NULL && isset($input['search']) && $input['search'] != NULL) {
+      // GET with input json specifying search: {"search":"$search_string"}
+      $rowid = 0;
+      $sql = "SELECT name FROM `$table` WHERE " . $input['search'] . ";";
+    } else if (is_array($_GET) && isset($_GET['search']) && $_GET['search'] != NULL) {
+      // GET with URI-appended ?search=..  (JSON body deprecated {"search":"$search_string"})
+      $rowid = 0; // might be an error if search string has id=N. 
+      $sql = "SELECT name FROM `$table` WHERE " . $_GET['search'] . ";";
+    } else if (is_array($_GET) && isset($_GET['id']) && $_GET['id'] != NULL) {
+      // GET without input json body is a single-row read on URI-specified id.
+      $rowid = $_GET['id'];
+      $sql = "SELECT name FROM `$table` WHERE id=" . $_GET['id'] . ";";
+    } else if ($input != NULL && isset($input['id']) && $input['id'] != NULL) {
+      // atypical use with {"id":N} in the json body, but we'll handle it.
+      $rowid = $input['id'];
+      $sql = "SELECT name FROM `$table` WHERE id=" . $input['id'] . ";";
+    } else {
+      // GET specified but row or search specified so ask for all.
+      $rowid = 0;
+      $sql = "SELECT name FROM `$table`;"; // all.
+    }
+    error_log("method: $method: $sql\n",3,"/tmp/isphp.err");
     break;
 }
 

@@ -1,0 +1,62 @@
+This record of changes may help developers to understand how to modify
+or debug the code.  It helped me as I debugged the Dog app.
+
+First, I followed instructions in the README, as follows. 
+
+I copied ../templates/is.php to ./App.php and changed it to be like a
+App name table.
+
+Then I modified Makefile with APP=App and called 'make' in ops/is to
+create the rest of these files in ops/is/App.
+
+Then I made sure mysql could run under root, and under public_user for
+db tv table App (isApp.db helped).
+
+Then I got the record of old submissions into dog.db.txt and modified
+that to dog.20211015.sql and sourced that in mysql to upload the data
+into the column tv.App.name.
+
+Then I used ./index.php to test it can create, read, and delete items.
+No point in update yet since what do I need to do, fix the spelling of
+a name?
+
+isApp.php provides a REST-ish API on HTTP requests with (usually) JSON
+data in the HTTP message body, for example for searches. 
+
+Then I tried to do a search, "SELECT * from tv.App" (e.g., WHERE
+id>0), but it fails to retrieve anything or show anything.  So track
+the Search code process through parallel to the Read process which is
+known to work.
+
+An operation skips around among so many levels.  Update is more
+complex; Create, Read, Delete are marginally simpler; so let's look at
+Search, with its stack of forms, functions, and places, as follows:
+
+  index.php has a hook to hang UI on, isSearchDiv,
+    and calls isApp.js:addSearch() to put UI there, including a search form
+  user calls for search in the UI search form added to index.php by addSearch()
+  form onsubmit calls is_App_search()
+  isApp.js:is_App_search() prepares url, json, and onload callback function
+    for generic isSearch() to use, then calls isSearch()
+  isapi.js:isSearch() takes prepared details and calls xhr.send()
+    xhr.send does its async work triggering myonload later, more on that below.
+    xhr.send() on the client disappears into the ether then
+         reconnects with us again on the server in isApp.php
+  isApp.php on the server provides a REST-ish remote interface for search &c.
+    it gets the http request, parses out the request type, the URL, any json input,
+    handles all requests.  Checks error conditions, builds SQL for
+    PUT (update), POST (create), DELETE (delete), GET (read or search)
+    calls sql, packages the results, returns them.
+  after xhr.send gets results from server, it calls myonload.
+  isApp.js:myonload() defined within is_App_search()
+    processes returned responseText (json) using gotPut()
+  isApp.js:gotPut(res,appNameList) puts results into appNameList
+
+Other locations search appears:
+
+  isapi.js:is(op...) checks whether op=='search'
+    and calls isSearch(), but this is never used.
+    the URL no longer contains op=S|C|R|U|D;
+    instead we use HTTP request type to decide what kind of request it is.
+  
+  isApp.db:elif [ $1 == "search" ]      explains how to do search sql manually
